@@ -1,4 +1,5 @@
-import {useState} from 'react';
+//useState and useEffect are hooks from react 
+import {useState, useEffect} from 'react';
 import './App.css';
 import Header from './Component/Header';
 import Tasks from './Component/Tasks';
@@ -52,6 +53,21 @@ Notes on REACT
       Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
       When u are done, restrict again for protection
       Set-ExecutionPolicy Restricted -Scope CurrentUser
+
+  Using JSON server as a Mock BackEnd
+    npm i json-server
+    package.Json 
+      add in scripts this line -> **"server": "json-server --watch db.json --port 5000"**
+    npm run server
+    useEffect is used to load something from backend when the page loads
+    Fetch data
+      const fetchTask = async () =>{
+        const res = await fetch('http://localhost:5000/tasks');
+        const data = await res.json();
+        return data
+    Delete Data use {method : 'Delete'}
+  }
+    
 */
 
 function App() {
@@ -60,48 +76,96 @@ function App() {
   //an array of objects in a state mapping 
   // {} these desfine objects 
   const [tasks, setTasks] = useState([
-    {
-      id : 1,
-      text : "Doctor Appt",
-      day: "Feb 5th at 2pm",
-      reminder: false,
-    },
-    {
-      id : 2,
-      text : "Walk the Dog",
-      day: "Feb 7th at 3pm",
-      reminder: false,
-    },
-    {
-      id : 3,
-      text : "Fall Asleep",
-      day: "Mar 10th at 12pm",
-      reminder: true,
-    }
+    // {
+    //   id : 1,
+    //   text : "Doctor Appt",
+    //   day: "Feb 5th at 2pm",
+    //   reminder: false,
+    // },
+    // {
+    //   id : 2,
+    //   text : "Walk the Dog",
+    //   day: "Feb 7th at 3pm",
+    //   reminder: false,
+    // },
+    // {
+    //   id : 3,
+    //   text : "Fall Asleep",
+    //   day: "Mar 10th at 12pm",
+    //   reminder: true,
+    // }
   ]);
+//This is used to fetch data from the backend at the load of the page
+  useEffect(() => {
+    const getTask = async() =>{
+      const tasksFromServer = await fetchTasks();
+      setTasks(tasksFromServer)
+    }
+
+    getTask();
+  }, [])//you can add a dependency array so that when a value a changes, this function runs
+
+  //FETCH Data from Json server, backend 
+  const fetchTasks = async () =>{
+    const res = await fetch('http://localhost:5000/tasks');
+    const data = await res.json();
+    return data
+  }
+
+  //FETCH a SINGLE task from Json server, backend 
+  const fetchTask = async (id) =>{
+    const res = await fetch(`http://localhost:5000/tasks/${id}`);
+    const data = await res.json();
+    return data
+  }
+
   const [showAddTask, setShowAddTask] = useState(false);
 
   //delete task
-  const deleteTask = (id) => {
+  const deleteTask = async (id) => {
       //console.log('delete', id);
       //filter is used to remove states from an array of states
+      await fetch(`http://localhost:5000/tasks/${id}`, {method : 'DELETE'})
       setTasks(tasks.filter((task) => task.id !== id))
   };
 
   //toggle reminder
-  const toggleReminder = (id) =>{
+  const toggleReminder = async (id) =>{
+    const taskToToggle = await fetchTask(id)
+    const upDatedTask = {...taskToToggle, reminder : !taskToToggle.reminder}
+    const res = await fetch(`http://localhost:5000/tasks/${id}`,
+      {method : 'PUT', 
+      headers : {
+        'Content-type' : 'application/json'
+      },
+      body : JSON.stringify(upDatedTask) 
+    } )
+    const data = await res.json();
+    setTasks(tasks.map((task) => task.id === id ? data : task))
     //console.log(id);
     //This replaces the the current task object with another object that copies (...task) the specified task
       //and replaces the reminder with the opposite of the current task
       //This process is needed because we are using states
-    setTasks(tasks.map((task) => task.id === id ? {...task, reminder : !task.reminder} : task))
+    //setTasks(tasks.map((task) => task.id === id ? {...task, reminder : !task.reminder} : task))
 
   };
 
   //Adding Task
-  const submitTask = ({task}) =>{
-    task.id = tasks[tasks.length-1].id + 1;
-    setTasks(tasks.concat(task));
+  const submitTask = async ({task}) =>{
+    //task.id = tasks[tasks.length-1].id + 1;
+    //backend will create id automatically
+    const res = await fetch('http://localhost:5000/tasks', {
+      method: 'POST',
+      headers: {
+        'Content-type': 'application/json',
+      },
+      body: JSON.stringify(task),
+    })
+
+    const data = await res.json()
+
+    setTasks([...tasks, data])
+    //setTasks([...tasks, task]);
   };
   return (
       //only returns one parent element. so in this case it is div.
