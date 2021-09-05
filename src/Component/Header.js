@@ -2,9 +2,9 @@ import PropTypes from 'prop-types'
 import Button from './Button'
 //rafce shortcut component for arrow function
 const Header = (props) => { //you can replace props with {title}if u want only title
-    const onClick = () =>{
-        console.log("click");
-    } 
+    // const onClick = () =>{
+    //     console.log("click");
+    // } 
     return (
         <header className = 'header'>
             <h1
@@ -15,7 +15,8 @@ const Header = (props) => { //you can replace props with {title}if u want only t
             {/* <h2 style = {headingStyle}>
                 Sample Style
             </h2> */}
-            <Button backColor = 'green' text = 'Add' onClick = {onClick}/>
+            <Button backColor = {props.showAddTask ? 'red': 'green'} text = {props.showAddTask ? 'Close': 'Add'}
+             onClick = {props.onClickAdd}/>
         </header>
     )
 }

@@ -2,9 +2,26 @@ import {useState} from 'react';
 import './App.css';
 import Header from './Component/Header';
 import Tasks from './Component/Tasks';
+import AddTask from './Component/AddTask';
 //ctrl ~ for terminal
 //ctrl c to stop server
 //to open application windows powershell -> cd task-tracker-react -> code .
+/*
+USING GIT:
+  Getting Started in Terminal: 
+      git init
+      git add .
+      git commit -m "anything" 
+      git remote add origin https://github.com/SaadSatter/task-tracker-react.git
+      git push origin master
+
+  Pushing changes into Git:
+      Save your files
+      git add .
+      git commit -m "changes made"
+      git push origin masters
+
+
 /*
 Notes on REACT
   Props vs State:
@@ -22,6 +39,19 @@ Notes on REACT
   
   Arrow Function: name = (param) => {function body}
                   This a short hand in writing functions 
+  
+  Interacting with CSS and HTML:
+    CSS in react uses camelCase 
+    classNames in HTML link to the CSS in index.css to alter appearance 
+  
+  Build For Production
+    npm run build
+    serve -s build -p 8000 //-p sets the port 
+    If there is a restricted error
+      Windows powershell cd to the project
+      Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+      When u are done, restrict again for protection
+      Set-ExecutionPolicy Restricted -Scope CurrentUser
 */
 
 function App() {
@@ -49,20 +79,41 @@ function App() {
       reminder: true,
     }
   ]);
+  const [showAddTask, setShowAddTask] = useState(false);
+
+  //delete task
   const deleteTask = (id) => {
       //console.log('delete', id);
       //filter is used to remove states from an array of states
       setTasks(tasks.filter((task) => task.id !== id))
-  }
+  };
+
+  //toggle reminder
+  const toggleReminder = (id) =>{
+    //console.log(id);
+    //This replaces the the current task object with another object that copies (...task) the specified task
+      //and replaces the reminder with the opposite of the current task
+      //This process is needed because we are using states
+    setTasks(tasks.map((task) => task.id === id ? {...task, reminder : !task.reminder} : task))
+
+  };
+
+  //Adding Task
+  const submitTask = ({task}) =>{
+    task.id = tasks[tasks.length-1].id + 1;
+    setTasks(tasks.concat(task));
+  };
   return (
       //only returns one parent element. so in this case it is div.
       <div className="container" /* remember className is case sensitive for CSS*/> 
       {/* importing component to the app */}
-      <Header title = 'Hello'/> {/*passing in a prop a.k.a  a param in html*/}
+      <Header title = 'Hello' onClickAdd = {() => setShowAddTask(!showAddTask)} showAddTask ={showAddTask}/> {/*passing in a prop a.k.a  a param in html*/}
         {/* <h2>
            Hello {booly ?  name : 'No'}
         </h2> */}
-        <Tasks tasks = {tasks} onDelete={deleteTask}/>
+        {showAddTask && <AddTask onSub = {submitTask}/>}
+        {tasks.length === 0 ? 'You have no tasks' : 
+        <Tasks tasks = {tasks} onDelete={deleteTask} onToggle = {toggleReminder}/>}
     </div>
   );
 }
